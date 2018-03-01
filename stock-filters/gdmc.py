@@ -48,11 +48,15 @@ def placeDoor(level, position, direction = Direction.East, materialId = material
     level.setMaterialAt(position+Direction.Up, (materialId, 8))
 
 def placeWindows(level, wall):
-    shortSide = 0 if wall.size.x == 1 else 2
-    longSide = 2-shortSide
+    wall2D = bu.BoundingBox2D(wall)
+    wall2D = wall2D.expand(-1, -1) # remove corners, floor and ceiling
     
-    shrink = [-1, -1, -1]
-    shrink[shortSide] = 0
-    wall =  wall.expand(*shrink)
+    if wall2D.height >= 2:
+        for x in range(0, wall2D.width-1, 3):
+            level.setMaterialAt(wall2D[x, 1], MAT_WINDOWS)
+            level.setMaterialAt(wall2D[x+1, 1], MAT_WINDOWS)
     
-    level.fill(wall, MAT_WINDOWS)
+    if wall2D.height >= 4:
+        for x in range(0, wall2D.width-1, 3):
+            level.setMaterialAt(wall2D[x, 2], MAT_WINDOWS)
+            level.setMaterialAt(wall2D[x+1, 2], MAT_WINDOWS)
