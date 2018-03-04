@@ -34,6 +34,26 @@ def clip(position, box):
 
 ########################################################################
 
+def splitAlongAxisAt(box, axis, position, isWorldPosition=False):
+    if not isWorldPosition:
+        position += box.origin[axis]
+    
+    if position <= box.origin[axis] or position >= box.maximum[axis]:
+        return [box]
+    
+    size = list(box.size)
+    size[axis] = position - box.origin[axis]
+    b1 = BoundingBox(box.origin, size)
+    
+    origin2 = list(box.origin)
+    origin2[axis] = b1.maximum[axis]
+    size[axis] = box.maximum[axis] - origin2[axis]
+    b2 = BoundingBox(origin2, size)
+    
+    return [b1, b2]
+
+########################################################################
+
 class BoundingBox2D:
     
     def __init__(self, box):
