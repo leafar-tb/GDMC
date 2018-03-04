@@ -22,7 +22,7 @@ def wall(box, direction):
         return BoundingBox((box.minx, box.miny, box.maxz-1), (box.width, box.height, 1))
     if direction == Direction.West:
         return BoundingBox(box.origin, (1, box.height, box.length))
-    
+
     # not walls as such, but close enough
     if direction == Direction.Up:
         return ceiling(box)
@@ -37,19 +37,19 @@ def clip(position, box):
 def splitAlongAxisAt(box, axis, position, isWorldPosition=False):
     if not isWorldPosition:
         position += box.origin[axis]
-    
+
     if position <= box.origin[axis] or position >= box.maximum[axis]:
         return [box]
-    
+
     size = list(box.size)
     size[axis] = position - box.origin[axis]
     b1 = BoundingBox(box.origin, size)
-    
+
     origin2 = list(box.origin)
     origin2[axis] = b1.maximum[axis]
     size[axis] = box.maximum[axis] - origin2[axis]
     b2 = BoundingBox(origin2, size)
-    
+
     return [b1, b2]
 
 ########################################################################
@@ -60,7 +60,7 @@ def doTouch(box1, box2):
     def doIntervalsOverlap(min1, max1, min2, max2):
         return liesIn(min1, min2, max2) or liesIn(max1-1, min2, max2) \
             or liesIn(min2, min1, max1) or liesIn(max2-1, min1, max1)
-    
+
     for axis in range(3):
         if ( box1.origin[axis] == box2.maximum[axis] or box1.maximum[axis] == box2.origin[axis] ) \
             and doIntervalsOverlap(box1.origin[(axis+1)%3], box1.maximum[(axis+1)%3], box2.origin[(axis+1)%3], box2.maximum[(axis+1)%3]) \
@@ -86,12 +86,12 @@ def minDistance(box1, box2):
 ########################################################################
 
 class BoundingBox2D:
-    
+
     def __init__(self, box):
         assert isinstance(box, BoundingBox)
         assert 1 in box.size
         self.box = box
-        
+
         # try mapping x to x and y to y
         self.x_axis = 0 if box.size.index(1) != 0 else 2
         self.y_axis = 1 if box.size.index(1) != 1 else 2
@@ -99,25 +99,25 @@ class BoundingBox2D:
     @property
     def width(self):
         return self.box.size[self.x_axis]
-    
+
     @property
     def height(self):
         return self.box.size[self.y_axis]
-    
+
     @property
     def size(self):
         return self.width, self.height
-    
+
     @property
     def positions(self):
         return self.box.positions
-    
+
     def expand(self, dx, dy):
         deltas = [0, 0, 0]
         deltas[self.x_axis] = dx
         deltas[self.y_axis] = dy
         return BoundingBox2D( self.box.expand( *deltas ) )
-    
+
     def __getitem__(self, (x,y)):
         offset = [0, 0, 0]
         offset[self.x_axis] = x

@@ -22,7 +22,7 @@ MAT_WINDOWS = materials["Glass"]
 
 def perform(level, box, options):
     LVinject(level)
-    
+
     for plot in splitIntoPlots(box, 5):
         buildHouse(level, plot)
 
@@ -31,14 +31,14 @@ def perform(level, box, options):
 def splitIntoPlots(box, minDim):
     backlog = [box]
     results = []
-    
+
     while backlog:
         plot = backlog.pop()
-                
+
         if random.random() < .1: # TODO add max constraint on plot size
             results.append(plot)
             continue
-        
+
         axes = [0, 2]
         random.shuffle(axes) # check x/z axes in random order
         didSplit = False
@@ -46,7 +46,7 @@ def splitIntoPlots(box, minDim):
             extraSpace = plot.size[axis] - minDim*2
             if extraSpace <= 0: # too small to split
                 continue
-            
+
             # split bigger plot with larger roads
             if extraSpace < 4:
                 gapWidth = 1
@@ -55,16 +55,16 @@ def splitIntoPlots(box, minDim):
             else:
                 gapWidth = 5
             randomSplitPos = random.randrange(minDim, plot.size[axis]-minDim-gapWidth+1)
-            
+
             plot1, road, plot2 = splitWithGap(plot, axis, randomSplitPos, gapWidth)
             backlog.append(plot1)
             backlog.append(plot2)
             didSplit = True
             break
-            
+
         if not didSplit:
             results.append(plot)
-    
+
     return results
 
 def splitWithGap(box, axis, position, gapWidth):
@@ -80,7 +80,7 @@ def buildHouse(level, box):
     for wall in bu.walls(box):
         level.fill(wall, MAT_WALLS)
         placeWindows(level, wall)
-    
+
     placeDoor( level, Vector(box.minx, box.miny+1, (box.minz + box.maxz)/2) )
 
 ########################################################################
@@ -101,14 +101,14 @@ def placeDoor(level, position, direction = Direction.East, materialId = material
 def placeWindows(level, wall):
     wall2D = bu.BoundingBox2D(wall)
     wall2D = wall2D.expand(-1, -1) # remove corners, floor and ceiling
-    
+
     if wall2D.width < 2 or wall2D.height < 2:
         return
-    
+
     for x in range(0, wall2D.width-1, 3):
             level.setMaterialAt(wall2D[x, 1], MAT_WINDOWS)
             level.setMaterialAt(wall2D[x+1, 1], MAT_WINDOWS)
-    
+
     if wall2D.height >= 4:
         for x in range(0, wall2D.width-1, 3):
             level.setMaterialAt(wall2D[x, 2], MAT_WINDOWS)
