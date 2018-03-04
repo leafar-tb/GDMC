@@ -30,7 +30,7 @@ def wall(box, direction):
         return floor(box)
 
 def clip(position, box):
-    return Vector( npclip( position, box.origin, box.maximum) )
+    return Vector( npclip( position, box.origin, box.maximum - Vector(1,1,1)) )
 
 ########################################################################
 
@@ -51,6 +51,37 @@ def splitAlongAxisAt(box, axis, position, isWorldPosition=False):
     b2 = BoundingBox(origin2, size)
     
     return [b1, b2]
+
+########################################################################
+
+def doTouch(box1, box2):
+    def liesIn(val, min, max):
+        return val >= min and val < max
+    def doIntervalsOverlap(min1, max1, min2, max2):
+        return liesIn(min1, min2, max2) or liesIn(max1-1, min2, max2) \
+            or liesIn(min2, min1, max1) or liesIn(max2-1, min1, max1)
+    
+    for axis in range(3):
+        if ( box1.origin[axis] == box2.maximum[axis] or box1.maximum[axis] == box2.origin[axis] ) \
+            and doIntervalsOverlap(box1.origin[(axis+1)%3], box1.maximum[(axis+1)%3], box2.origin[(axis+1)%3], box2.maximum[(axis+1)%3]) \
+            and doIntervalsOverlap(box1.origin[(axis+2)%3], box1.maximum[(axis+2)%3], box2.origin[(axis+2)%3], box2.maximum[(axis+2)%3]):
+                return True
+    return False
+
+def doOverlap(box1, box2):
+    return box1.intersect(box2).volume != 0
+
+def center(box):
+    return box.origin + box.size / 2
+
+def centerDistance(box1, box2):
+    return ( center(box1) - center(box2) ).length()
+
+def minDistance(box1, box2):
+    box1Center = center(box1).intfloor()
+    closestInBox2ToBox1Center = clip( box1Center, box2 )
+    closestInBox1ToAbove = clip( closestInBox2ToBox1Center, box1 )
+    return ( closestInBox2ToBox1Center - closestInBox1ToAbove ).length()
 
 ########################################################################
 
