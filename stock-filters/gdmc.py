@@ -6,6 +6,7 @@ from mcplatform import *
 from myglobals import *
 import boxutils as bu
 from level_extensions import inject as LVinject
+from site import *
 
 # name to show in filter list
 displayName = "Settlement Generator"
@@ -23,54 +24,10 @@ MAT_WINDOWS = materials["Glass"]
 def perform(level, box, options):
     LVinject(level)
 
-    for plot in splitIntoPlots(box, 5):
+    site = Site(level, box)
+
+    for plot in filterByTag(site.plots, 'buildable'):
         buildHouse(level, plot)
-
-########################################################################
-
-def splitIntoPlots(box, minDim):
-    backlog = [box]
-    results = []
-
-    while backlog:
-        plot = backlog.pop()
-
-        if random.random() < .1: # TODO add max constraint on plot size
-            results.append(plot)
-            continue
-
-        axes = [0, 2]
-        random.shuffle(axes) # check x/z axes in random order
-        didSplit = False
-        for axis in axes:
-            extraSpace = plot.size[axis] - minDim*2
-            if extraSpace <= 0: # too small to split
-                continue
-
-            # split bigger plot with larger roads
-            if extraSpace < 4:
-                gapWidth = 1
-            elif extraSpace < 10:
-                gapWidth = 3
-            else:
-                gapWidth = 5
-            randomSplitPos = random.randrange(minDim, plot.size[axis]-minDim-gapWidth+1)
-
-            plot1, road, plot2 = splitWithGap(plot, axis, randomSplitPos, gapWidth)
-            backlog.append(plot1)
-            backlog.append(plot2)
-            didSplit = True
-            break
-
-        if not didSplit:
-            results.append(plot)
-
-    return results
-
-def splitWithGap(box, axis, position, gapWidth):
-    plot1, plot2 = bu.splitAlongAxisAt(box, axis, position)
-    gap, plot2 = bu.splitAlongAxisAt(plot2, axis, gapWidth)
-    return plot1, gap, plot2
 
 ########################################################################
 
