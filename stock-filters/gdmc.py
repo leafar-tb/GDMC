@@ -6,7 +6,7 @@ from mcplatform import *
 from myglobals import *
 import boxutils as bu
 from level_extensions import inject as LVinject
-from site import *
+from buildsite import *
 
 # name to show in filter list
 displayName = "Settlement Generator"

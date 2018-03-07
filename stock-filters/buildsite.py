@@ -1,7 +1,7 @@
 import random
 from pymclevel import BoundingBox
 
-from myglobals import *
+from myglobals import materials
 import boxutils as bu
 
 ########################################################################
@@ -37,7 +37,7 @@ def filterByTag(plotList, *tags, **kwargs):
 ########################################################################
 
 def splitIntoPlots(site):
-    backlog = [site.box]
+    backlog = [site.bounds]
     results = []
     minDim = site.minPlotDim
 
@@ -99,7 +99,7 @@ DefaultSiteInfo = {
     'maxPlotDim'    : 20,
 }
 
-class Site:
+class Site(object):
 
     def __init__(self, level, siteBox, registrar=splitIntoPlots, **kwargs):
         self.level = level
