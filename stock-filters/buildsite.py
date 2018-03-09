@@ -41,9 +41,8 @@ def splitIntoPlots(site):
     results = []
     minDim = site.minPlotDim
 
-    def newPlot(box, tag):
+    def newPlot(box):
         plot = Plot(site, box)
-        plot.tags.append(tag)
         results.append(plot)
         return plot
 
@@ -51,7 +50,7 @@ def splitIntoPlots(site):
         plotBox = backlog.pop()
 
         if random.random() < .1 and plotBox.width < site.maxPlotDim and plotBox.length < site.maxPlotDim:
-            newPlot(plotBox, "buildable")
+            newPlot(plotBox)
             continue
 
         axes = [0, 2]
@@ -74,12 +73,12 @@ def splitIntoPlots(site):
             plot1, road, plot2 = splitWithGap(plotBox, axis, randomSplitPos, gapWidth)
             backlog.append(plot1)
             backlog.append(plot2)
-            newPlot(road, "road" if gapWidth > 1 else "gap")
+            newPlot(road).tags.append("road" if gapWidth > 1 else "gap")
             didSplit = True
             break
 
         if not didSplit:
-            newPlot(plotBox, "buildable")
+            newPlot(plotBox)
 
     return results
 

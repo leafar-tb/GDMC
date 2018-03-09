@@ -1,7 +1,7 @@
 from types import MethodType
 
 import boxutils as bu
-from myglobals import materials, NON_GROUND_BLOCKS
+from myglobals import materials, NON_GROUND_BLOCKS, Vector
 
 # list of functions to inject
 _functionsToInject = []
