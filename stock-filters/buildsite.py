@@ -1,4 +1,5 @@
 import random
+import numpy as np
 from pymclevel import BoundingBox
 
 from myglobals import materials
@@ -16,8 +17,30 @@ class Plot(BoundingBox):
         self.tags = []
 
     @property
+    def level(self):
+        return self.site.level
+
+    @property
     def area(self):
+        "The plot's floor area"
         return self.width * self.length
+
+    @property
+    def excentricity(self):
+        "Distance of the plot's center to the site center, normalised to the size of the site"
+        bounds = self.site.bounds
+        extents = max( bounds.width/2, bounds.length/2 )
+        return min( bu.centerDistance( self, bounds ) / extents, 1 )
+
+    @property
+    def centricity(self):
+        return 1 - self.excentricity
+
+    def hasNeighbourWithTag(self, tag):
+        return any( tag in nbr.tags for nbr in self.neighbours )
+
+    def neighboursWithTag(self, tag):
+        return filter( lambda p: tag in p.tags, self.neighbours )
 
 ###############################
 
@@ -89,9 +112,25 @@ def splitWithGap(box, axis, position, gapWidth):
 
 ########################################################################
 
+class WeightDict(dict):
+
+    def __init__(self, default, basedict={}):
+        super(WeightDict, self).__init__(basedict)
+        self.default = default
+
+    def random(self):
+        norm = sum(self.values())
+        keys = self.keys()
+        if norm:
+            return np.random.choice( keys, p = [self[key]/norm for key in keys] )
+        else:
+            return self.default
+
+########################################################################
+
 DefaultSiteInfo = {
-    'stoneTypes'    : {materials.Stone : 1},
-    'woodTypes'     : {"Oak" : 1},
+    'stoneTypes'    : WeightDict(materials.Stone),
+    'woodTypes'     : WeightDict('Oak'),
     'climate'       : 'medium',
     'season'        : 'spring',
     'minPlotDim'    : 5,
