@@ -97,14 +97,13 @@ def roadIF(plot):
     return 1 if 'road' in plot.tags else 0
 
 def buildRoad(plot):
-    level = plot.site.level
     if plot.width < plot.length:
-        plot = plot.expand(-1, 0, 0)
+        paveplot = plot.expand(-1, 0, 0)
     else:
-        plot = plot.expand(0, 0, -1)
+        paveplot = plot.expand(0, 0, -1)
 
-    for ground in level.groundPositions(plot):
-        level.setMaterialAt(ground, materials['Granite'])
+    for ground in plot.level.groundPositions(paveplot):
+        plot.level.setMaterialAt(ground, plot.site.stoneTypes.random())
 
 register( Builder(roadIF, noop, buildRoad) )
 
@@ -113,24 +112,54 @@ register( Builder(roadIF, noop, buildRoad) )
 @requires(notARoad)
 @requires(minimumDimensions(5))
 def houseIF(plot):
-    return 1
+    interest = plot.centricity
+    if not plot.hasNeighbourWithTag('road'):
+        interest /= 10
+    return interest
 
 def markHouse(plot):
     plot.tags.append('house')
 
 def buildHouse(plot):
-    MAT_WALLS = materials["Spruce Wood Planks"]
+    matName = plot.site.woodTypes.random()
+    MAT_WALLS = materials[matName+" Wood Planks"]
 
-    level = plot.site.level
+    level = plot.level
     level.fill(bu.ceiling(plot), MAT_WALLS)
     level.fill(bu.floor(plot), MAT_WALLS)
     for wall in bu.walls(plot):
         level.fill(wall, MAT_WALLS)
         placeWindows(level, wall)
 
-    placeDoor( level, Vector(plot.minx, plot.miny+1, (plot.minz + plot.maxz)/2) )
+    placeDoor( level, Vector(plot.minx, plot.miny+1, (plot.minz + plot.maxz)/2), Direction.East, matName )
 
 register( Builder(houseIF, markHouse, buildHouse) )
+
+########################################################################
+
+crops = [
+    materials["Wheat (Age 7 (Max))"],
+    materials["Carrots (Age 7)"],
+    materials["Potatoes (Age 7)"]
+]
+
+soil = materials["Farmland (Wet, Moisture 7)"]
+
+@requires(notARoad)
+@requires(minimumDimensions(2))
+def acreIF(plot):
+    if plot.excentricity < .5:
+        return 0
+    return plot.excentricity
+
+def buildAcre(plot):
+    crop = np.random.choice(crops)
+    for ground in plot.level.groundPositions(plot):
+        plot.level.setMaterialAt(ground, soil)
+        plot.level.setMaterialAt(ground+Direction.Up, crop)
+
+register( Builder(acreIF, noop, buildAcre) )
+register( Builder(acreIF, noop, noop) )
 
 ########################################################################
 
@@ -141,7 +170,8 @@ DOOR_LOWER_DATA = {
     Direction.North : 3
 }
 
-def placeDoor(level, position, direction = Direction.East, materialId = materials.blocksMatching("Oak Door")[0].ID):
+def placeDoor(level, position, direction, materialName):
+    materialId = materials[materialName + ' Door (Lower, Unopened, East)'].ID
     level.setMaterialAt(position, (materialId, DOOR_LOWER_DATA[direction]))
     level.setMaterialAt(position+Direction.Up, (materialId, 8)) # 8 => upper door with unpowered left hinge
 
